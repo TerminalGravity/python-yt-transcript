@@ -1,0 +1,59 @@
+import os
+from dotenv import load_dotenv
+import yt_dlp as youtube_dl
+import openai
+import requests
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Set up OpenAI API credentials
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+
+def transcribe_audio(url):
+    video_title = ''
+    
+    # Define the hook function before using it
+    def hook(d):
+        nonlocal video_title
+        if d['status'] == 'finished':
+            video_title = d.get('title', 'Unknown Video Title')
+    
+    # Custom youtube_dl options to also fetch video title
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'outtmpl': 'audio',
+        'progress_hooks': [hook],  # Now hook is defined before this line
+    }
+    
+    
+    def hook(d):
+        nonlocal video_title
+        if d['status'] == 'finished':
+            video_title = d.get('title', 'Unknown Video Title')
+    
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+    # Transcribe the audio using OpenAI's Whisper ASR model
+    with open("audio.mp3", "rb") as f:
+        audio_file = f.read()
+
+    response = openai.Audio.create(
+        model="whisper-1",  # Replace with the actual model ID for Whisper ASR
+        file=audio_file,
+        response_format="json"
+    )
+
+    # Save the transcription to a text file
+    transcription = response['text']
+    with open("transcription.txt", "w") as f:
+        f.write(transcription)
+
+    return "transcription.txt", video_title

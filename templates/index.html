@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Video Transcriber</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<h1>YouTube Video Transcriber</h1>
+
+<form id="transcribe-form">
+    <label for="url">Enter YouTube Video URL:</label>
+    <input type="text" id="url" name="url" required>
+    <button type="submit">Transcribe</button>
+</form>
+
+<div id="progress-container" style="display: none;">
+    <h2>Transcribing...</h2>
+    <progress id="progress-bar" max="100" value="0"></progress>
+</div>
+
+<div id="success-container" style="display: none;">
+    <h2><span id="video-title"></span> ✔️</h2>
+    <a href="#" id="download-link">Download Transcription</a>
+    <button onclick="showPopup()">Show Text</button>
+</div>
+
+<div id="popup" style="display: none;">
+    <pre id="transcribed-text"></pre>
+    <button onclick="$('#popup').hide()">Close</button>
+</div>
+
+<script>
+    function showPopup() {
+        $('#popup').show();
+        // Fetch and display transcribed text (For demonstration, using static text)
+        $('#transcribed-text').text("Your transcribed text will appear here.");
+    }
+
+    $(document).ready(function () {
+        $("#transcribe-form").submit(function (e) {
+            e.preventDefault();
+            $("#progress-container").show();
+            let progressBar = $("#progress-bar");
+            let url = $("#url").val();
+
+            // Simulate progress bar filling up
+            let progress = 0;
+            let interval = setInterval(function () {
+                progress += 10;
+                progressBar.val(progress);
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    // Perform AJAX call to backend here to trigger the transcription
+                    $.post("/", { url: url }, function (data) {
+                        $("#progress-container").hide();
+                        $("#success-container").show();
+                        $("#video-title").text(data.video_title);
+                        // Set up download link and transcribed text
+                        $("#download-link").attr("href", data.filename);
+                    });
+                }
+            }, 500);
+        });
+    });
+</script>
+
+</body>
+</html>

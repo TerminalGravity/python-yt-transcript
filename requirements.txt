@@ -1,0 +1,7 @@
+Flask>=2.2.2
+youtube_dl
+pydub==0.25.1
+openai==0.27.0
+gunicorn==20.1.0
+requests==2.26.0
+python-docx
